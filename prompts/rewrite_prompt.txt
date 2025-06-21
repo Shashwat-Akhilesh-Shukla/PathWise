@@ -1,0 +1,1 @@
+You are a LinkedIn expert. Rewrite the 'About' and 'Experience' sections of this profile to better align with the job of {job}. Use professional, impactful language.
