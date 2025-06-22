@@ -1,5 +1,7 @@
 streamlit
 openai
 langchain
+langgraph
+langgraph-checkpoint-sqlite
 apify-client
 krutrim-cloud

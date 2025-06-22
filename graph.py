@@ -1,44 +1,118 @@
 from langgraph.graph import StateGraph, END
-from langgraph.prebuilt import ToolNode, ToolExecutor, RouterNode
+from langgraph.prebuilt import ToolNode
+from typing import TypedDict, List
 from agents import profile_analyzer, job_fit_agent, rewrite_agent
-from langchain_core.runnables import RunnableLambda
 from langgraph.checkpoint.sqlite import SqliteSaver
 import os
 
-tools = {
-    "analyze_profile": profile_analyzer(),
-    "job_fit": job_fit_agent(),
-    "rewrite_profile": rewrite_agent()
+
+class CareerState(TypedDict):
+    query: str
+    profile: dict
+    job_role: str
+    messages: List[str]
+    current_tool: str
+
+
+analyze_agent = profile_analyzer()
+job_fit_analyzer = job_fit_agent() 
+rewrite_analyzer = rewrite_agent()
+
+
+tool_map = {
+    "analyze_profile": analyze_agent,
+    "job_fit": job_fit_analyzer,
+    "rewrite_profile": rewrite_analyzer
 }
 
-executor = ToolExecutor(tools)
 
 keywords = {
     "analyze": "analyze_profile",
-    "match": "job_fit",
+    "match": "job_fit", 
     "score": "job_fit",
     "rewrite": "rewrite_profile",
     "improve": "rewrite_profile"
 }
 
-def router(inputs):
-    query = inputs["query"].lower()
-    for k, v in keywords.items():
-        if k in query:
-            return v
-    return "analyze_profile"
+def router_node(state: CareerState) -> CareerState:
+    """Router node to determine which tool to use based on query"""
+    query = state["query"].lower()
+    
+    
+    selected_tool = "analyze_profile"  
+    for keyword, tool_name in keywords.items():
+        if keyword in query:
+            selected_tool = tool_name
+            break
+    
+    state["current_tool"] = selected_tool
+    return state
 
-storage_path = os.path.join(os.path.dirname(__file__), "memory.sqlite")
-saver = SqliteSaver.from_conn_string(f"sqlite:///{storage_path}")
+def agent_node(agent_func):
+    """Wrapper to create a proper node function from an agent"""
+    def node_func(state: CareerState) -> CareerState:
+        
+        current_tool = state["current_tool"]
+        
+        
+        inputs = {}
+        if current_tool == "analyze_profile":
+            inputs["profile"] = state["profile"] 
+        elif current_tool == "job_fit":
+            inputs["profile"] = state["profile"] 
+            inputs["job"] = state["job_role"]         
+        elif current_tool == "rewrite_profile":
+            inputs["profile"] = state["profile"] 
+            inputs["job"] = state["job_role"]         
+        
+        
+        
+        inputs["query"] = state["query"]
 
-builder = StateGraph()
-builder.add_node("router", RouterNode(func=router))
-for name in tools:
-    builder.add_node(name, ToolNode(name=name, tool=executor))
-    builder.add_edge(name, END)
+        try:
+            
+            result = agent_func.invoke(inputs)
+        except Exception as e:
+            result = f"Error calling agent {current_tool}: {str(e)}"
+        
+        
+        if "messages" not in state:
+            state["messages"] = []
+        state["messages"].append(str(result))
+        
+        return state
+    return node_func
+
+
+
+
+
+builder = StateGraph(CareerState)
+
+
+builder.add_node("router", router_node)
+
+def route_to_tool(state: CareerState) -> str:
+    """Conditional edge function to route to appropriate tool"""
+    return state["current_tool"]
+
+
+for tool_name, agent in tool_map.items():
+    builder.add_node(tool_name, agent_node(agent))
 
 builder.set_entry_point("router")
-for name in tools:
-    builder.add_conditional_edges("router", lambda x: router(x) == name, {name: lambda x: True})
 
-career_graph = builder.compile(checkpointer=saver)
+builder.add_conditional_edges(
+    "router",
+    route_to_tool,
+    {
+        "analyze_profile": "analyze_profile",
+        "job_fit": "job_fit", 
+        "rewrite_profile": "rewrite_profile"
+    }
+)
+
+for tool_name in tool_map:
+    builder.add_edge(tool_name, END)
+
+career_graph = builder.compile()
