@@ -1,6 +1,3 @@
-import sys
-sys.modules["cv2"] = None
-
 import os
 from langchain_core.output_parsers import StrOutputParser
 from langchain_core.runnables import RunnableLambda
