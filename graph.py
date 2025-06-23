@@ -9,7 +9,7 @@ import os
 class CareerState(TypedDict):
     query: str
     profile: dict
-    job_role: str
+    job: str
     messages: List[str]
     current_tool: str
 
@@ -60,10 +60,10 @@ def agent_node(agent_func):
             inputs["profile"] = state["profile"] 
         elif current_tool == "job_fit":
             inputs["profile"] = state["profile"] 
-            inputs["job"] = state["job_role"]         
+            inputs["job"] = state.get("job", "")         
         elif current_tool == "rewrite_profile":
             inputs["profile"] = state["profile"] 
-            inputs["job"] = state["job_role"]         
+            inputs["job"] = state.get("job", "")         
         
         
         
