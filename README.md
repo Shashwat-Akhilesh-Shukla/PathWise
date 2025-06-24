@@ -33,8 +33,13 @@ Create a `.env` file in the root directory of the project and add your API keys:
 ```
 TOKEN_APIFY="YOUR_APIFY_API_TOKEN"
 API_KEY="YOUR_KRUTRIM_CLOUD_API_KEY"
+LI_AT_COOKIE=
+JSESSIONID_COOKIE=
+BCOOKIE_COOKIE=
+BSCOOKIE_COOKIE=
+LIDC_COOKIE=
 ```
-
+The cookies can be found by clicking F12 key and navigating to the application tab.
 ### 3\. Install Dependencies
 
 It's recommended to use a virtual environment:
