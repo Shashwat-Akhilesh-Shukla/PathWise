@@ -1,6 +1,6 @@
 services:
   - type: web
-    name: linkedin-career-agent
+    name: Linkedin-Chat-System
     env: python
     region: oregon
     plan: starter
