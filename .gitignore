@@ -1,3 +1,5 @@
 .env
 .conda/
+.vscode/
+.devcontainer/
 __pycache__/
