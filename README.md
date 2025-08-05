@@ -2,6 +2,9 @@
 
 This AI chatbot is designed to help you optimize your LinkedIn profile to better match specific job roles. Built with Streamlit for the user interface, Apify for profile scraping, and Krutrim Cloud (DeepSeek-R1) for AI capabilities, it allows you to analyze your profile, get job fit evaluations, and receive suggestions for rewriting your content to boost your chances.
 
+# Watch the demo here:
+https://www.loom.com/share/b329a038c0ab4be99b13a3c128e68888?sid=4e09a282-7b57-4bce-b2ab-2f6585a37a68
+
 ## Features
 
   * **LinkedIn Profile Scraping**: Easily pull your LinkedIn profile data using a URL.
